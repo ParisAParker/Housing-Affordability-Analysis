@@ -9,21 +9,9 @@ national_housing_df = pd.read_csv("../data/national_housing.csv")
 national_housing_df['month_date_yyyymm'] = pd.to_datetime(national_housing_df['month_date_yyyymm'])
 national_housing_df['affordability_index'] = national_housing_df['median_income'] / national_housing_df['median_listing_price']
 
-housing_df = pd.read_csv("../data/state_housing.csv")
-housing_df['month_date_yyyymm'] = pd.to_datetime(housing_df['month_date_yyyymm'])
-housing_df['affordability_index'] = housing_df['Households'] / housing_df['median_listing_price']
-
-# Create line graph for national affordability index over several years
-fig, ax = plt.subplots()
-ax.plot(national_housing_df['month_date_yyyymm'], national_housing_df['affordability_index'])
-
-# Set the title and axes
-ax.set_xlabel('Year')
-ax.set_ylabel('Income to Home Price Ratio')
-ax.set_title('Income to Home Price Ratio Over Time (National Level)')
-
-
-st.pyplot(fig)
+state_housing_df = pd.read_csv("../data/state_housing.csv")
+state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_date_yyyymm'])
+state_housing_df['affordability_index'] = state_housing_df['Households'] / state_housing_df['median_listing_price']
 
 # Select the year
 selected_year = st.selectbox('Select Year', national_housing_df['year'].unique())
@@ -50,7 +38,7 @@ ax.set_xlim(0,0.35)
 st.pyplot(fig)
 
 # Shows the affordability index over the years for the selected state
-selected_metric = st.selectbox('Select Metric', ['median_listing_price',
+metric = st.selectbox('Select Metric', ['median_listing_price',
  'active_listing_count',
  'median_days_on_market',
  'new_listing_count',
@@ -60,19 +48,57 @@ selected_metric = st.selectbox('Select Metric', ['median_listing_price',
  'median_listing_price_per_square_foot',
  'median_square_feet',
  'average_listing_price',
- 'total_listing_count'])
+ 'total_listing_count',
+ 'affordability_index'])
 
-selected_state = st.selectbox('Select State', housing_df['state'].unique())
+states = st.multiselect('Select States:', state_housing_df['state'].unique(), default = state_housing_df['state'].unique())
 
-housing_for_state = housing_df.query(f"state == '{selected_state}'")
+show_national = st.checkbox('Show national line', value = True)
+
+# Subsetting dataframe for selected states
+housing_for_state = state_housing_df[state_housing_df['state'].isin(states)]
 
 # Create line graph for national affordability index over several years
-fig, ax = plt.subplots()
-ax.plot(housing_for_state['month_date_yyyymm'], housing_for_state[f'{selected_metric}'])
+fig, ax1 = plt.subplots()
 
+for state in states:
+    # Subset dataset for that state
+    state_data = housing_for_state.query(f"state == '{state}'")
+    
+    # Plot line graph 
+    ax1.plot(state_data['month_date_yyyymm'], state_data[f'{metric}'], color = 'grey')
+    
+    # Label the end of each line
+    ax1.text(state_data['month_date_yyyymm'].iloc[0],
+         state_data[f'{metric}'].iloc[0],
+         state,
+         fontsize = 9,
+         ha = 'left',
+         color = 'grey',
+         fontweight = 'bold')
+    
+# Add a line for the entire united states
+if show_national == True:
+    ax1.plot(national_housing_df['month_date_yyyymm'], national_housing_df[f'{metric}'], color = 'black')
+    
+    ax1.text(national_housing_df['month_date_yyyymm'].iloc[0],
+            national_housing_df[f'{metric}'].iloc[0],
+            'United States',
+            fontsize = 9,
+            ha = 'left',
+            color = 'black',
+            fontweight = 'bold')
+    
 # Set the title and axes
-ax.set_xlabel('Year')
-ax.set_ylabel('Income to Home Price Ratio')
-ax.set_title(f'Income to Home Price Ratio Over Time for {selected_state}')
+ax1.set_xlabel('Year')
+ax1.set_ylabel(f'{metric}')
+ax1.set_title(f'{metric} Over Time')
+
+# Remove the spines
+ax1.spines['top'].set_visible(False)
+ax1.spines['right'].set_visible(False)
+
+# Define y range
+ax1.set_ylim(bottom = 0)
 
 st.pyplot(fig)
