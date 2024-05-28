@@ -2,6 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+
+# Setting up streamlit page configuration
+st.set_page_config(layout = 'wide')
 
 # Read csv, convert datetime column & create affordability index column
 national_housing_df = pd.read_csv("../data/national_housing.csv")
@@ -14,34 +18,54 @@ state_housing_df['affordability_index'] = state_housing_df['Households'] / state
 
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 
-# Setting up page configuration
-st.set_page_config(layout = 'wide')
+# Grab the earliest and latest date of the dataframe
+start_date = state_housing_df['month_date_yyyymm'].min().to_pydatetime()
+end_date = state_housing_df['month_date_yyyymm'].max().to_pydatetime()
+
+# Making sure slider only uses first day of the month
+date_range = pd.date_range(start = start_date,
+                           end = end_date,
+                           freq = 'MS').to_list()
+
+# Create a date slider for the page
+date_slider = st.sidebar.select_slider(
+    "Select date range",
+    options = date_range,
+    value = (date_range[0], date_range[-1]),
+    format_func = lambda x: x.strftime("%b %Y"))
+
+# Filter data based on date metrics
+filtered_df = state_housing_df[(state_housing_df['month_date_yyyymm'] >= date_slider[0]) & (state_housing_df['month_date_yyyymm'] <= date_slider[1])]
+latest_year = date_slider[1].to_pydatetime().year
+latest_month = date_slider[1].to_pydatetime().strftime('%B')
+
+filtered_national_df = national_housing_df[(national_housing_df['month_date_yyyymm'] >= date_slider[0]) & (national_housing_df['month_date_yyyymm'] <= date_slider[1])]
 
 # Defining functions
 # This function takes in the selected states and show national argument & returns a line plot of the states median listing price over the years
 # & the united states line if checked true
-def mlp_pricing_trend(states, show_national):
+def mlp_pricing_trend(metric, year, month, states, show_national):
     
-    # Define the metric used
-    metric = 'median_listing_price'
-    year = 2022
-    month = 'December'
+    # # Define the metric used
+    # metric = 'median_listing_price'
+    # year = 2024
+    # month = 'April'
 
     # Defining top 10 states and bottom 10 states
-    top_10_states = state_housing_df.query(f"year == {year} and month == '{month}'")\
+    top_10_states = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()\
     [['month_date_yyyymm','state',f'{metric}']].head(10)
 
     top_10_states = top_10_states['state'].unique()
 
-    bottom_10_states = state_housing_df.query(f"year == {year} and month == '{month}'")\
+    bottom_10_states = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()\
     [['month_date_yyyymm','state',f'{metric}']].tail(10)
 
     bottom_10_states = bottom_10_states['state'].unique()
 
     # Subsetting dataframe for selected states
-    housing_for_state = state_housing_df[state_housing_df['state'].isin(states)]
+    housing_for_state = filtered_df[filtered_df['state'].isin(states)]
 
     # Create line graph for median listing price over several years
     fig, ax1 = plt.subplots()
@@ -91,10 +115,10 @@ def mlp_pricing_trend(states, show_national):
         
     # Add a line for the entire united states
     if show_national == True:
-        ax1.plot(national_housing_df['month_date_yyyymm'], national_housing_df[f'{metric}'], color = 'black')
+        ax1.plot(filtered_national_df['month_date_yyyymm'], filtered_national_df[f'{metric}'], color = 'black')
         
-        ax1.text(national_housing_df['month_date_yyyymm'].iloc[0],
-                national_housing_df[f'{metric}'].iloc[0],
+        ax1.text(filtered_national_df['month_date_yyyymm'].iloc[0],
+                filtered_national_df[f'{metric}'].iloc[0],
                 'United States',
                 fontsize = 9,
                 ha = 'left',
@@ -118,18 +142,18 @@ def mlp_pricing_trend(states, show_national):
 # Function that takes in metric, month, and year and returns the top 10 states for that specific metric in the given timeframe
 def top_10_mlp(metric,month,year):
 
-    filtered_df = state_housing_df.query(f"year == {year} and month == '{month}'")\
+    local_filtered_df = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()
 
-    filtered_df = filtered_df[['month_date_yyyymm','state',f'{metric}']]
-    top_10_states = filtered_df.head(10)
+    local_filtered_df = local_filtered_df[['month_date_yyyymm','state',f'{metric}']]
+    top_10_states = local_filtered_df.head(10)
     top_10_states = top_10_states.sort_values(by = f"{metric}", ascending = True)
 
     # Define x and y
     x = top_10_states[f'{metric}']
     y = top_10_states['state']
 
-    # Create horizontal bar chart for national affordability index by month
+    # Create horizontal bar chart for top 10 states
     fig, ax = plt.subplots()
     bars = ax.barh(y, x, color = 'grey')
 
@@ -140,7 +164,7 @@ def top_10_mlp(metric,month,year):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Top 10 States by {metric} ')
+    ax.set_title(f'Top 10 States Ranked by {metric} for {latest_month} {latest_year} ')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -157,11 +181,11 @@ def top_10_mlp(metric,month,year):
 # Function that takes in metric, month, and year and returns the bottom 10 states for that specific metric in the given timeframe
 def bottom_10_mlp(metric,month,year):
 
-    filtered_df = state_housing_df.query(f"year == {year} and month == '{month}'")\
+    local_filtered_df = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()
 
-    filtered_df = filtered_df[['month_date_yyyymm','state',f'{metric}']]
-    bottom_10_states = filtered_df.tail(10)
+    local_filtered_df = local_filtered_df[['month_date_yyyymm','state',f'{metric}']]
+    bottom_10_states = local_filtered_df.tail(10)
     bottom_10_states = bottom_10_states.sort_values(by = f"{metric}", ascending = True)
 
     # Define x and y
@@ -179,7 +203,7 @@ def bottom_10_mlp(metric,month,year):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Bottom 10 States by {metric} ')
+    ax.set_title(f'Bottom 10 States Ranked by {metric} for {latest_month} {latest_year}')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -220,18 +244,18 @@ def percentage_increase_plot(states):
 top_left_column, top_right_column = st.columns((2,1))
 bottom_left_column, bottom_right_column = st.columns(2)
 
+metric = 'median_listing_price'
+month = latest_month
+year = latest_year
+
 with top_left_column:
 
-    states = st.multiselect('Select States:', state_housing_df['state'].unique(), default = 'Tennessee')
-    show_national = st.checkbox('Show United States', value = True)
+    states = st.multiselect('Select States:', filtered_df['state'].unique(), default = 'Tennessee')
+    show_national = st.checkbox('Show United States', value = False)
 
-    st.pyplot(mlp_pricing_trend(states,show_national))
+    st.pyplot(mlp_pricing_trend(metric, year, month, states, show_national))
 
 with top_right_column:
-
-    metric = 'median_listing_price'
-    month = 'December'
-    year = 2022
 
     with st.container():
         st.pyplot(top_10_mlp(metric,month,year))
@@ -239,7 +263,7 @@ with top_right_column:
     with st.container():
        st.pyplot(bottom_10_mlp(metric,month,year))
 
-# Subset dataframe to only show selected states
-mlp_increase = mlp_increase[mlp_increase['state'].isin(states)]
+# # Subset dataframe to only show selected states
+# mlp_increase = mlp_increase[mlp_increase['state'].isin(states)]
 
-st.dataframe(mlp_increase)
+# st.dataframe(mlp_increase)
