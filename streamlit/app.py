@@ -10,13 +10,17 @@ st.set_page_config(layout = 'wide')
 # Read csv, convert datetime column & create affordability index column
 national_housing_df = pd.read_csv("../data/national_housing.csv")
 national_housing_df['month_date_yyyymm'] = pd.to_datetime(national_housing_df['month_date_yyyymm'])
-national_housing_df['affordability_index'] = national_housing_df['median_income'] / national_housing_df['median_listing_price']
 
 state_housing_df = pd.read_csv("../data/state_housing.csv")
 state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_date_yyyymm'])
-state_housing_df['affordability_index'] = state_housing_df['Households'] / state_housing_df['median_listing_price']
 
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
+
+# Add metric option to sidebar
+metric_options = ['Median Listing Price','median_income','Income to Home Price Ratio']
+metric = st.sidebar.selectbox("Select Metric", metric_options)
+
+state_housing_df = state_housing_df.dropna(subset = f"{metric}")
 
 # Grab the earliest and latest date of the dataframe
 start_date = state_housing_df['month_date_yyyymm'].min().to_pydatetime()
@@ -45,11 +49,6 @@ filtered_national_df = national_housing_df[(national_housing_df['month_date_yyyy
 # This function takes in the selected states and show national argument & returns a line plot of the states median listing price over the years
 # & the united states line if checked true
 def mlp_pricing_trend(metric, year, month, states, show_national):
-    
-    # # Define the metric used
-    # metric = 'median_listing_price'
-    # year = 2024
-    # month = 'April'
 
     # Defining top 10 states and bottom 10 states
     top_10_states = filtered_df.query(f"year == {year} and month == '{month}'")\
@@ -173,8 +172,11 @@ def top_10_mlp(metric,month,year):
     # Label the bar numbers
     ax.bar_label(bars, color = 'white', padding = -50)
 
+    # Calculate the max of the metric
+    max_value = filtered_df[f"{metric}"].max()
+
     # Set the x range
-    ax.set_xlim((0,900000))
+    ax.set_xlim(0,(max_value))
 
     return fig
 
@@ -212,8 +214,11 @@ def bottom_10_mlp(metric,month,year):
     # Label the bar numbers
     ax.bar_label(bars, color = 'white', padding = -50)
 
-    # Set x range
-    ax.set_xlim((0,900000))
+    # Calculate the max of the metric
+    max_value = filtered_df[f"{metric}"].max()
+
+    # Set the x range
+    ax.set_xlim(0,(max_value))
 
     return fig
 
@@ -244,7 +249,7 @@ def percentage_increase_plot(states):
 top_left_column, top_right_column = st.columns((2,1))
 bottom_left_column, bottom_right_column = st.columns(2)
 
-metric = 'median_listing_price'
+
 month = latest_month
 year = latest_year
 
