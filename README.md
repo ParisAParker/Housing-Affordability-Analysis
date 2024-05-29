@@ -1,7 +1,7 @@
 # Housing-Market-Analysis
 
 ### Executive Summary
-This project explores how housing affordability has changed over the years. Using data from median income statistics, Zillow housing metrics, and potentially other sources, the project aims to provide insights into housing affordability trends. The primary motivation for this research is to assist prospective homebuyers, like myself, in understanding the evolving landscape of housing affordability.
+This project explores how housing affordability has changed over the years. Using data from median income statistics, Realtor housing metrics, and potentially other sources, the project aims to provide insights into housing affordability trends. The primary motivation for this research is to assist prospective homebuyers, like myself, in understanding the evolving landscape of housing affordability.
 
 ### Motivation & Data Questions
 
