@@ -17,16 +17,10 @@ state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_d
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 
 # Add metric option to sidebar
-metric_options = ['Median Listing Price','median_income','Income to Home Price Ratio']
+metric_options = ['Median Listing Price','Median Income','Income to Home Price Ratio']
 metric = st.sidebar.selectbox("Select Metric", metric_options)
 
-# Give different plot titles for different metrics
-title = []
-
-if metric == 'Median Listing Price':
-    title.append('States with Highest Home Prices')
-
-
+# Remove all null values for the specific metric
 state_housing_df = state_housing_df.dropna(subset = f"{metric}")
 
 # Grab the earliest and latest date of the dataframe
@@ -146,7 +140,7 @@ def mlp_pricing_trend(metric, year, month, states, show_national):
     return(fig)
 
 # Function that takes in metric, month, and year and returns the top 10 states for that specific metric in the given timeframe
-def top_10_mlp(metric,month,year,title):
+def top_10_mlp(metric,month,year):
 
     local_filtered_df = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()
@@ -170,7 +164,7 @@ def top_10_mlp(metric,month,year,title):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'{latest_month} {latest_year}: {title} ')
+    ax.set_title(f'{latest_month} {latest_year}: Top 10 States by {metric}')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -212,7 +206,7 @@ def bottom_10_mlp(metric,month,year):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Bottom 10 States Ranked by {metric} for {latest_month} {latest_year}')
+    ax.set_title(f'{latest_month} {latest_year}: Lowest 10 States by {metric}')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -228,6 +222,48 @@ def bottom_10_mlp(metric,month,year):
     ax.set_xlim(0,(max_value))
 
     return fig
+
+# Function that shows how much higher (in %) the max value is than the national value
+def percent_higher_lower(metric, month, year, method):
+    # Filter data for the specific month and year
+    local_filtered_df = filtered_df.query(f"month == '{month}' and year =={year}")
+    
+    # Are we comparing the highest or lowest state?
+    if method == 'highest':
+        
+        # Find the row that has the highest value for the specific metric
+        metric_row = local_filtered_df.sort_values(by = f'{metric}', ascending = False).iloc[0]
+    elif method == 'lowest':
+        
+        
+        # Find the row that has the lowest value for the specific metric
+        metric_row = local_filtered_df.sort_values(by = f'{metric}', ascending = True).iloc[0]
+    
+    else:
+        raise ValueError("No correct method type highest or lowest")
+        
+    # Find the state and metric value of the row
+    metric_value = metric_row[f"{metric}"]
+    state = metric_row['state']
+
+    # Filter data for national dataframe
+    national_local_filtered_df = filtered_national_df.query(f"month == '{month}' and year =={year}")
+
+    # Find the metric value at the national level
+    national_metric_value = national_local_filtered_df.iloc[0][f'{metric}']
+
+    # Find how much higher/lower the metric value is than the national value
+    percent_change = abs(round(((metric_value - national_metric_value) / national_metric_value) * 100,0).astype(int))
+
+    # If the value is a decimal round to 2 places if not round and make an integer
+    if metric_value < 1:
+        metric_value = round(metric_value,2)
+        metric_value = f"{metric_value:.2f}"
+
+    else:
+        metric_value = int(round(metric_value,0))
+
+    return metric_value, state, int(percent_change)
 
 # Function that takes in states and returns plot of their percentage increase in median listing price
 def percentage_increase_plot(states):   
@@ -253,24 +289,48 @@ def percentage_increase_plot(states):
     return fig
 
 # Create cols
-top_left_column, top_right_column = st.columns((2,1))
-bottom_left_column, bottom_right_column = st.columns(2)
-
+left_column, right_column = st.columns((2,1))
 
 month = latest_month
 year = latest_year
 
-with top_left_column:
+with left_column:
+    
+    #st.markdown
 
-    states = st.multiselect('Select States:', filtered_df['state'].unique(), default = 'Tennessee')
+    # Create 3 equal columns withing the left section
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        percent_metric_list = percent_higher_lower(metric, month, year, 'highest')
+        metric_value = percent_metric_list[0]
+        metric_state = percent_metric_list[1]
+        metric_percent = percent_metric_list[2]
+
+        st.metric(label = f'{metric_state}',
+              value = metric_value,
+              delta=int(metric_percent))
+
+    with col2:
+        percent_metric_list = percent_higher_lower(metric, month, year, 'lowest')
+        metric_value = percent_metric_list[0]
+        metric_state = percent_metric_list[1]
+        metric_percent = percent_metric_list[2]
+
+        st.metric(label = f'{metric_state}',
+              value = metric_value,
+              delta=int(metric_percent))
+    
+
+    states = st.multiselect('Select States:', filtered_df['state'].unique(), default = ['Tennessee', 'Hawaii','Ohio'])
     show_national = st.checkbox('Show United States', value = False)
 
     st.pyplot(mlp_pricing_trend(metric, year, month, states, show_national))
 
-with top_right_column:
+with right_column:
 
     with st.container():
-        st.pyplot(top_10_mlp(metric,month,year,title))
+        st.pyplot(top_10_mlp(metric,month,year))
     
     with st.container():
        st.pyplot(bottom_10_mlp(metric,month,year))
