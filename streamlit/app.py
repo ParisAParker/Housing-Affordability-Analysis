@@ -20,6 +20,13 @@ mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 metric_options = ['Median Listing Price','median_income','Income to Home Price Ratio']
 metric = st.sidebar.selectbox("Select Metric", metric_options)
 
+# Give different plot titles for different metrics
+title = []
+
+if metric == 'Median Listing Price':
+    title.append('States with Highest Home Prices')
+
+
 state_housing_df = state_housing_df.dropna(subset = f"{metric}")
 
 # Grab the earliest and latest date of the dataframe
@@ -139,7 +146,7 @@ def mlp_pricing_trend(metric, year, month, states, show_national):
     return(fig)
 
 # Function that takes in metric, month, and year and returns the top 10 states for that specific metric in the given timeframe
-def top_10_mlp(metric,month,year):
+def top_10_mlp(metric,month,year,title):
 
     local_filtered_df = filtered_df.query(f"year == {year} and month == '{month}'")\
     .sort_values(f"{metric}", ascending = False).reset_index()
@@ -163,7 +170,7 @@ def top_10_mlp(metric,month,year):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Top 10 States Ranked by {metric} for {latest_month} {latest_year} ')
+    ax.set_title(f'{latest_month} {latest_year}: {title} ')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -263,7 +270,7 @@ with top_left_column:
 with top_right_column:
 
     with st.container():
-        st.pyplot(top_10_mlp(metric,month,year))
+        st.pyplot(top_10_mlp(metric,month,year,title))
     
     with st.container():
        st.pyplot(bottom_10_mlp(metric,month,year))
