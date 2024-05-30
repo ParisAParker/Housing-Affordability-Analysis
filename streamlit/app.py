@@ -253,7 +253,7 @@ def percent_higher_lower(metric, month, year, method):
     national_metric_value = national_local_filtered_df.iloc[0][f'{metric}']
 
     # Find how much higher/lower the metric value is than the national value
-    percent_change = abs(round(((metric_value - national_metric_value) / national_metric_value) * 100,0).astype(int))
+    percent_change = round(((metric_value - national_metric_value) / national_metric_value) * 100,0).astype(int)
 
     # If the value is a decimal round to 2 places if not round and make an integer
     if metric_value < 1:
@@ -264,6 +264,30 @@ def percent_higher_lower(metric, month, year, method):
         metric_value = int(round(metric_value,0))
 
     return metric_value, state, int(percent_change)
+
+def national_comparison(metric, month, year):
+    # Find the national value of the metric
+    national_value = filtered_national_df.query(f"year == {year} and month == '{month}'").iloc[0][f"{metric}"]
+
+    # Filter the dataframe for the month and year
+    local_filtered_df = filtered_df.query(f"year == {year} and month == '{month}'")
+
+    # Find how many states are above the national value
+    states_num_above = len(local_filtered_df[local_filtered_df[f'{metric}'] >= national_value])
+
+    # Find what percentage of all states are above the national value
+    percent_states_above = (states_num_above / len(local_filtered_df)) * 100
+    percent_states_above = int(round(percent_states_above,0))
+
+    # If the value is a decimal round to 2 places if not round and make an integer
+    if national_value < 1:
+        national_value = round(national_value,2)
+        national_value = f"{national_value:.2f}"
+
+    else:
+        national_value = int(round(national_value,0))
+
+    return states_num_above, percent_states_above, national_value
 
 # Function that takes in states and returns plot of their percentage increase in median listing price
 def percentage_increase_plot(states):   
@@ -288,20 +312,24 @@ def percentage_increase_plot(states):
 
     return fig
 
+month = latest_month
+year = latest_year
 # Create cols
 left_column, right_column = st.columns((2,1))
 
-month = latest_month
-year = latest_year
-
 with left_column:
-    
     #st.markdown
 
-    # Create 3 equal columns withing the left section
-    col1, col2, col3 = st.columns(3)
+    # Create 4 equal columns withing the left section
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
+        national_value = national_comparison(metric, month, year)[2]
+
+        st.metric(label = "National Value",
+                  value = national_value)
+
+    with col2:
         percent_metric_list = percent_higher_lower(metric, month, year, 'highest')
         metric_value = percent_metric_list[0]
         metric_state = percent_metric_list[1]
@@ -311,7 +339,7 @@ with left_column:
               value = metric_value,
               delta=int(metric_percent))
 
-    with col2:
+    with col3:
         percent_metric_list = percent_higher_lower(metric, month, year, 'lowest')
         metric_value = percent_metric_list[0]
         metric_state = percent_metric_list[1]
@@ -320,6 +348,15 @@ with left_column:
         st.metric(label = f'{metric_state}',
               value = metric_value,
               delta=int(metric_percent))
+    
+    with col4:
+        national_comparison_list = national_comparison(metric, month, year)
+        num_states = national_comparison_list[0]
+        percent_states = national_comparison_list[1]
+
+        st.metric(label = "Number of States Above National Value",
+                  value = num_states,
+                  delta = percent_states)
     
 
     states = st.multiselect('Select States:', filtered_df['state'].unique(), default = ['Tennessee', 'Hawaii','Ohio'])
@@ -333,9 +370,4 @@ with right_column:
         st.pyplot(top_10_mlp(metric,month,year))
     
     with st.container():
-       st.pyplot(bottom_10_mlp(metric,month,year))
-
-# # Subset dataframe to only show selected states
-# mlp_increase = mlp_increase[mlp_increase['state'].isin(states)]
-
-# st.dataframe(mlp_increase)
+        st.pyplot(bottom_10_mlp(metric,month,year))
