@@ -17,7 +17,7 @@ state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_d
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 
 # Add metric option to sidebar
-metric_options = ['Median Listing Price','Median Income','Income to Home Price Ratio']
+metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','Median Income','Income to Home Price Ratio']
 metric = st.sidebar.selectbox("Select Metric", metric_options)
 
 # Remove all null values for the specific metric
@@ -195,7 +195,7 @@ def bottom_10_mlp(metric,month,year):
     x = bottom_10_states[f'{metric}']
     y = bottom_10_states['state']
 
-    # Create horizontal bar chart for national affordability index by month
+    # Create horizontal bar chart
     fig, ax = plt.subplots()
     bars = ax.barh(y, x, color = 'grey')
 
@@ -288,63 +288,6 @@ def national_comparison(metric, month, year):
         national_value = int(round(national_value,0))
 
     return states_num_above, percent_states_above, national_value
-
-# Function that displays a plot showing the best month to buy a house
-def best_time_buy(metric):
-    
-    local_filtered_df = national_df.query('year != 2024')
-
-    local_filtered_df['Median Listing Price Yearly Average'] = local_filtered_df.groupby('year')['Median Listing Price'].transform('mean')
-
-    local_filtered_df['Median Listing Price Percentage of Average'] = (local_filtered_df['Median Listing Price'] / local_filtered_df['Median Listing Price Yearly Average']) * 100
-
-    # Make months a categorical variable with an order
-    month_order = ['January', 'February','March','April','May','June','July','August','September','October','November','December']
-    local_filtered_df['month'] = pd.Categorical(local_filtered_df['month'], categories = month_order, ordered = True)
-
-    agg_value = local_filtered_df.groupby('month')['Median Listing Price Percentage of Average'].mean().reset_index()
-
-    agg_value = agg_value.sort_values('month', ascending = False)
-
-    metric = 'Median Listing Price Percentage of Average'
-
-    # Define x and y
-    x = agg_value[f'{metric}']
-    y = agg_value['month']
-
-    # Round x values
-    x = round(x,1)
-
-    # Create horizontal bar chart for top 10 states
-    fig, ax = plt.subplots()
-    bars = ax.barh(y, x, color = 'grey')
-
-    # Highlight a specific state
-    for bar, month, value in zip(bars, y, x):
-        if value == x.min():
-            bar.set_color('blue')
-
-    # Set the title and axes
-    ax.set_xlabel(f'{metric}')
-    ax.set_title('January is the Best Time to Buy A House')
-
-    # Remove the spines
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-    # Label the bar numbers
-    ax.bar_label(bars, color = 'white', padding = -50)
-
-    # Calculate the max of the metric and round
-    min_value = x.min()
-
-    max_value = x.max()
-
-
-    # Set the x range
-    ax.set_xlim(min_value - 10, max_value + 10)
-
-    return fig
 
 # Function that takes in states and returns plot of their percentage increase in median listing price
 def percentage_increase_plot(states):   
