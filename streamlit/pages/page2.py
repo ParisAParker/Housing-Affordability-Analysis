@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 from datetime import datetime
 
 # Setting up streamlit page configuration
@@ -374,6 +375,44 @@ def state_home_size_variability(metric, state):
 
     return fig
 
+
+def interactive_metric_over_time(metric, state):
+    local_filtered_df = state_df.query(f"state == '{state}'")
+
+    # Create the interactive plot
+    fig = px.line(local_filtered_df, 
+                  x='month_date_yyyymm', 
+                  y=f'{metric}', 
+                  title=f'{metric} Over Time in {state}', 
+                  labels={'month_date_yyyymm': 'Month', f'{metric}': f'{metric}'},
+                  line_shape='linear')
+
+    # Update line color
+    fig.update_traces(line=dict(color='grey'))
+
+    # Customize layout
+    fig.update_layout(
+        plot_bgcolor='white',  # Set background color to white
+        xaxis=dict(
+            showgrid=False,  # Remove x-axis gridlines
+            showline=True,  # Show x-axis line
+            linecolor='grey'  # Set x-axis line color to black
+        ),
+        yaxis=dict(
+            showgrid=False,  # Remove y-axis gridlines
+            showline=True,  # Show y-axis line
+            linecolor='grey',  # Set y-axis line color to black
+        ),
+        hoverlabel = dict(
+            bgcolor = 'white', # Set background color for hover box
+            font_size = 12, # Set font size for hover box
+            font_family = "Arial" # Set font family
+        )
+    )
+
+    # Show the plot
+    return fig
+
 ###Content of the actual page
 ###
 ###
@@ -414,3 +453,19 @@ with tab2:
         
         with col2:
             st.pyplot(state_most_listing_options("total_listing_count", state))
+    
+    with s_tab2:
+
+        # Create columns
+        col1, col2 = st.columns(2)
+
+        with col1:
+            
+            st.plotly_chart(interactive_metric_over_time("Median Listing Price", state))
+            st.plotly_chart(interactive_metric_over_time("Median Square Feet", state))
+            st.plotly_chart(interactive_metric_over_time("Income to Home Price Ratio", state))
+        
+        with col2:
+
+            st.plotly_chart(interactive_metric_over_time("Median Listing Price per Square Foot", state))
+            st.plotly_chart(interactive_metric_over_time("total_listing_count", state))
