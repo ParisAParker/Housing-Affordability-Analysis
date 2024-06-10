@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 # Setting up streamlit page configuration
-st.set_page_config(layout = 'wide')
+st.set_page_config(page_title="Housing Affordability Analysis",
+    page_icon="🏠",
+    layout = 'wide')
 
 # Read csv, convert datetime column & create affordability index column
 national_housing_df = pd.read_csv("../data/national_housing.csv")
@@ -17,7 +19,7 @@ state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_d
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 
 # Add metric option to sidebar
-metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','Median Income','Income to Home Price Ratio']
+metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','active_listing_count','Median Income','Income to Home Price Ratio']
 metric = st.sidebar.selectbox("Select Metric", metric_options)
 
 # Remove all null values for the specific metric

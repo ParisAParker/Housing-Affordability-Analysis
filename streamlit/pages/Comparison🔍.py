@@ -6,7 +6,9 @@ import plotly.express as px
 from datetime import datetime
 
 # Setting up streamlit page configuration
-st.set_page_config(layout = 'wide')
+st.set_page_config(page_title="Housing Affordability Analysis",
+    page_icon="🏠",
+    layout = 'wide')
 
 # Read csv, convert datetime column & create affordability index column
 national_df = pd.read_csv("../data/national_housing.csv")
@@ -15,7 +17,7 @@ national_df['month_date_yyyymm'] = pd.to_datetime(national_df['month_date_yyyymm
 state_df = pd.read_csv("../data/state_housing.csv")
 state_df['month_date_yyyymm'] = pd.to_datetime(state_df['month_date_yyyymm'])
 
-def best_time_buy(metric):
+def best_time_buy(metric, min, max):
     
     local_filtered_df = national_df.query('year != 2024')
 
@@ -46,7 +48,7 @@ def best_time_buy(metric):
 
     # Highlight a specific state
     for bar, month, value in zip(bars, y, x):
-        if value == x.max():
+        if value == x.min():
             best_month = month
             bar.set_color('blue')
 
@@ -72,11 +74,11 @@ def best_time_buy(metric):
         lim = abs(max_value)
 
     # Set the x range
-    ax.set_xlim(-(lim), lim)
+    ax.set_xlim(min, max)
 
     return fig
 
-def most_listing_options(metric):
+def most_listing_options(metric, min, max):
     
     local_filtered_df = national_df.query('year != 2024')
 
@@ -133,11 +135,11 @@ def most_listing_options(metric):
         lim = abs(max_value)
 
     # Set the x range
-    ax.set_xlim(-(lim), lim)
+    ax.set_xlim(min, max)
 
     return fig
 
-def home_size_variability(metric):
+def home_size_variability(metric, min, max):
     
     local_filtered_df = national_df.query('year != 2024')
 
@@ -194,11 +196,68 @@ def home_size_variability(metric):
         lim = abs(max_value)
 
     # Set the x range
-    ax.set_xlim(-(lim), lim)
+    ax.set_xlim(min, max)
 
     return fig
 
-def state_best_time_buy(metric, state):
+def median_days_on_market(metric, min, max):
+    
+    local_filtered_df = state_df.query('year != 2024')
+
+    local_filtered_df[f'{metric} Yearly Average'] = local_filtered_df.groupby('year')[f'{metric}'].transform('mean')
+
+    local_filtered_df[f'{metric} Deviation'] = ((local_filtered_df[f'{metric}'] - local_filtered_df[f'{metric} Yearly Average']) / local_filtered_df[f'{metric} Yearly Average']) * 100
+
+    # Make months a categorical variable with an order
+    month_order = ['January', 'February','March','April','May','June','July','August','September','October','November','December']
+    local_filtered_df['month'] = pd.Categorical(local_filtered_df['month'], categories = month_order, ordered = True)
+
+    agg_value = local_filtered_df.groupby('month')[f'{metric} Deviation'].mean().reset_index()
+
+    agg_value = agg_value.sort_values('month', ascending = False)
+
+    metric = f'{metric} Deviation'
+
+    # Define x and y
+    x = agg_value[f'{metric}']
+    y = agg_value['month']
+
+    # Round x values
+    x = round(x,1)
+
+    # Create horizontal bar chart for top 10 states
+    fig, ax = plt.subplots()
+    bars = ax.barh(y, x, color = 'grey')
+
+    # Highlight a specific state
+    for bar, month, value in zip(bars, y, x):
+        if value == x.max():
+            best_month = month
+            bar.set_color('blue')
+
+    # Set the title and axes
+    ax.set_xlabel(f'{metric}')
+    ax.set_title(f'Highest Median Days on Market: {best_month} at Peak')
+
+    # Remove the spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # Label the bar numbers
+    ax.bar_label(bars, color = 'white', padding = -50)
+
+    # Calculate the max of the metric and round
+    min_value = x.min()
+
+    max_value = x.max()
+
+
+    # Set the x range
+    ax.set_xlim(min, max)
+
+    return fig
+
+def state_best_time_buy(metric, state, min, max):
     
     local_filtered_df = state_df.query('year != 2024')
     
@@ -237,7 +296,7 @@ def state_best_time_buy(metric, state):
 
     # Set the title and axes
     ax.set_xlabel(f'{metric}')
-    ax.set_title(f'{best_month} is the Best Time to Buy A House')
+    ax.set_title(f'{best_month} has the Lowest Housing Prices')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -253,11 +312,11 @@ def state_best_time_buy(metric, state):
 
 
     # Set the x range
-    ax.set_xlim(min_value, max_value)
+    ax.set_xlim(min, max)
 
     return fig
 
-def state_most_listing_options(metric, state):
+def state_most_listing_options(metric, state, min, max):
     
     local_filtered_df = state_df.query('year != 2024')
     
@@ -312,11 +371,11 @@ def state_most_listing_options(metric, state):
 
 
     # Set the x range
-    ax.set_xlim(min_value, max_value)
+    ax.set_xlim(min, max)
 
     return fig
 
-def state_home_size_variability(metric, state):
+def state_home_size_variability(metric, state, min, max):
     
     local_filtered_df = state_df.query('year != 2024')
     
@@ -371,7 +430,67 @@ def state_home_size_variability(metric, state):
 
 
     # Set the x range
-    ax.set_xlim(min_value, max_value)
+    ax.set_xlim(min, max)
+
+    return fig
+
+
+def state_median_days_on_market(metric, state, min, max):
+    
+    local_filtered_df = state_df.query('year != 2024')
+    
+    local_filtered_df = local_filtered_df.query(f'state == "{state}"')
+
+    local_filtered_df[f'{metric} Yearly Average'] = local_filtered_df.groupby('year')[f'{metric}'].transform('mean')
+
+    local_filtered_df[f'{metric} Deviation'] = ((local_filtered_df[f'{metric}'] - local_filtered_df[f'{metric} Yearly Average']) / local_filtered_df[f'{metric} Yearly Average']) * 100
+
+    # Make months a categorical variable with an order
+    month_order = ['January', 'February','March','April','May','June','July','August','September','October','November','December']
+    local_filtered_df['month'] = pd.Categorical(local_filtered_df['month'], categories = month_order, ordered = True)
+
+    agg_value = local_filtered_df.groupby('month')[f'{metric} Deviation'].mean().reset_index()
+
+    agg_value = agg_value.sort_values('month', ascending = False)
+
+    metric = f'{metric} Deviation'
+
+    # Define x and y
+    x = agg_value[f'{metric}']
+    y = agg_value['month']
+
+    # Round x values
+    x = round(x,1)
+
+    # Create horizontal bar chart for top 10 states
+    fig, ax = plt.subplots()
+    bars = ax.barh(y, x, color = 'grey')
+
+    # Highlight a specific state
+    for bar, month, value in zip(bars, y, x):
+        if value == x.max():
+            best_month = month
+            bar.set_color('blue')
+
+    # Set the title and axes
+    ax.set_xlabel(f'{metric}')
+    ax.set_title(f'Highest Median Days on Market: {best_month} at Peak')
+
+    # Remove the spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # Label the bar numbers
+    ax.bar_label(bars, color = 'white', padding = -50)
+
+    # Calculate the max of the metric and round
+    min_value = x.min()
+
+    max_value = x.max()
+
+
+    # Set the x range
+    ax.set_xlim(min, max)
 
     return fig
 
@@ -428,11 +547,14 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.pyplot(best_time_buy('Median Listing Price'))
-        st.pyplot(home_size_variability('Median Square Feet'))
+        st.pyplot(best_time_buy('Median Listing Price', -10, 10))
+        st.pyplot(home_size_variability('Median Square Feet', -10, 10))
 
     with col2:
-        st.pyplot(most_listing_options('total_listing_count'))
+        st.pyplot(most_listing_options('active_listing_count', -10, 10))
+
+    st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)    
+    st.pyplot(median_days_on_market('median_days_on_market', -45, 45))
 
 with tab2:
     st.header("State View")
@@ -448,12 +570,16 @@ with tab2:
         col1, col2 = st.columns(2)
 
         with col1:
-            st.pyplot(state_best_time_buy("Median Listing Price", state))
-            st.pyplot(state_home_size_variability("Median Square Feet", state))
+            st.pyplot(state_best_time_buy("Median Listing Price", state, -20, 20))
+            st.pyplot(state_home_size_variability("Median Square Feet", state, -20, 20))
         
         with col2:
-            st.pyplot(state_most_listing_options("total_listing_count", state))
-    
+            st.pyplot(state_most_listing_options("active_listing_count", state, -20, 20))
+
+        st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)
+        st.pyplot(state_median_days_on_market("median_days_on_market", state, -45, 45))
+
+
     with s_tab2:
 
         # Create columns
@@ -468,4 +594,5 @@ with tab2:
         with col2:
 
             st.plotly_chart(interactive_metric_over_time("Median Listing Price per Square Foot", state))
-            st.plotly_chart(interactive_metric_over_time("total_listing_count", state))
+            st.plotly_chart(interactive_metric_over_time("active_listing_count", state))
+            st.plotly_chart(interactive_metric_over_time("median_days_on_market", state))            
