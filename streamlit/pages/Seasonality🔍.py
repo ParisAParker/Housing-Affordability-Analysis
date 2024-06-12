@@ -17,6 +17,7 @@ national_df['month_date_yyyymm'] = pd.to_datetime(national_df['month_date_yyyymm
 state_df = pd.read_csv("../data/state_housing.csv")
 state_df['month_date_yyyymm'] = pd.to_datetime(state_df['month_date_yyyymm'])
 
+
 def best_time_buy(metric, min, max):
     
     local_filtered_df = national_df.query('year != 2024')
@@ -494,6 +495,42 @@ def state_median_days_on_market(metric, state, min, max):
 
     return fig
 
+def n_interactive_metric_over_time(metric):
+
+    # Create the interactive plot
+    fig = px.line(national_df, 
+                  x = 'month_date_yyyymm', 
+                  y = f'{metric}', 
+                  title = f'{metric} for the Country', 
+                  labels = {'month_date_yyyymm': 'Month', f'{metric}': f'{metric}'},
+                  line_shape='linear')
+
+    # Update line color
+    fig.update_traces(line=dict(color='grey'))
+
+    # Customize layout
+    fig.update_layout(
+        plot_bgcolor='white',  # Set background color to white
+        xaxis=dict(
+            showgrid=False,  # Remove x-axis gridlines
+            showline=True,  # Show x-axis line
+            linecolor='grey'  # Set x-axis line color to black
+        ),
+        yaxis=dict(
+            showgrid=False,  # Remove y-axis gridlines
+            showline=True,  # Show y-axis line
+            linecolor='grey',  # Set y-axis line color to black
+        ),
+        hoverlabel = dict(
+            bgcolor = 'white', # Set background color for hover box
+            font_size = 12, # Set font size for hover box
+            font_family = "Arial" # Set font family
+        )
+    )
+
+    # Show the plot
+    return fig
+
 
 def interactive_metric_over_time(metric, state):
     local_filtered_df = state_df.query(f"state == '{state}'")
@@ -532,6 +569,33 @@ def interactive_metric_over_time(metric, state):
     # Show the plot
     return fig
 
+def pct_change_metric(metric, state):
+
+    # Sort values by state and date for percent change calculation
+    percent_change = state_df.sort_values(by = ['state', 'month_date_yyyymm'])
+
+    percent_change = percent_change.groupby('state').agg(earliest_price = (f'{metric}','first'),
+                                    latest_price = (f'{metric}','last'))\
+                                    .reset_index()
+
+    percent_change['percent_increase'] = ((percent_change['latest_price'] - percent_change['earliest_price']) / percent_change['earliest_price']) * 100
+
+    percent_change = percent_change.sort_values('percent_increase', ascending = False).reset_index(drop = True)
+
+    # Create column for rank of state for that metric
+    percent_change = percent_change.reset_index()\
+    .rename(columns = {'index': 'rank'})
+
+    percent_change['rank'] = percent_change['rank'] + 1
+
+    pct_increase = percent_change[percent_change['state'] == state]['percent_increase'].iloc[0]
+    pct_increase = int(round(pct_increase,0))
+
+    rank = percent_change[percent_change['state'] == state]['rank'].iloc[0]
+    rank = int(rank)
+
+    return pct_increase, rank
+
 ###Content of the actual page
 ###
 ###
@@ -542,19 +606,39 @@ tab1, tab2 = st.tabs(["National View","State View"])
 
 # Create tab for national view
 with tab1:
+
     st.header("National View")
-    # Create columns
-    col1, col2 = st.columns(2)
 
-    with col1:
-        st.pyplot(best_time_buy('Median Listing Price', -10, 10))
-        st.pyplot(home_size_variability('Median Square Feet', -10, 10))
+    # Create national tabs
+    n_tab1, n_tab2 = st.tabs(["Seasonality View", "National Metrics"])
 
-    with col2:
-        st.pyplot(most_listing_options('active_listing_count', -10, 10))
+    with n_tab1:
+        # Create columns
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.pyplot(best_time_buy('Median Listing Price', -10, 10))
+            st.pyplot(home_size_variability('Median Square Feet', -10, 10))
 
-    st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)    
-    st.pyplot(median_days_on_market('median_days_on_market', -45, 45))
+        with col2:
+            st.pyplot(most_listing_options('active_listing_count', -10, 10))
+
+        st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)    
+        st.pyplot(median_days_on_market('median_days_on_market', -45, 45))
+    
+    with n_tab2:
+        # Create columns
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.plotly_chart(n_interactive_metric_over_time("Median Listing Price"))
+            st.plotly_chart(n_interactive_metric_over_time("Median Square Feet"))
+            st.plotly_chart(n_interactive_metric_over_time("Income to Home Price Ratio"))
+
+        with col2:
+            st.plotly_chart(n_interactive_metric_over_time("Median Listing Price per Square Foot"))
+            st.plotly_chart(n_interactive_metric_over_time("active_listing_count"))
+            st.plotly_chart(n_interactive_metric_over_time("median_days_on_market"))      
 
 with tab2:
     st.header("State View")
@@ -581,7 +665,93 @@ with tab2:
 
 
     with s_tab2:
+        m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
+        
+        with open('style.css') as f:
+            st.markdown(f'<style>{f.read()}<style>', unsafe_allow_html=True)
 
+        def styled_metric(metric_label,rank_value,percent_value,background_color='#EEEEEE',text_align='center'):
+            metric_html = f""" 
+            <div style="background-color: {background_color};
+              padding: 16px;
+                border-radius: 10px;
+                  text-align: {text_align};
+                  ">
+            <div style="margin: 10 px auto;">
+                <p style="margin: 0;">{metric_label}</p>
+                    <h4 style="margin: 0; font-size: 20px;">Rank {rank_value} out of 51</h4>
+                        <p style="margin: 0; font-size: 20px;">{percent_value}</p> </div> </div>
+                            """ 
+            return metric_html 
+        
+        with m_col1:
+            metric = 'Median Listing Price'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            # metric_html = styled_metric(
+            #     metric_label=f"{metric}",
+            #     rank_value=rank,
+            #     percent_value = percent_increase
+            # )
+
+            # st.markdown(metric_html, unsafe_allow_html=True)
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color='normal')
+
+        with m_col2:
+            metric = 'Median Square Feet'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color= 'normal') 
+            
+        with m_col3:
+            metric = 'Median Listing Price per Square Foot'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color= 'normal') 
+            
+        with m_col4:
+            metric = 'Income to Home Price Ratio'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color= 'normal') 
+            
+        with m_col5:
+            metric = 'active_listing_count'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color= 'normal') 
+            
+        with m_col6:
+            metric = 'median_days_on_market'
+            percent_increase = pct_change_metric(f"{metric}",state)[0]
+            rank = pct_change_metric(f"{metric}",state)[1]
+
+            st.metric(label = f'{metric} % increase',
+                      value = rank,
+                      delta = percent_increase,
+                      delta_color= 'normal') 
+        
         # Create columns
         col1, col2 = st.columns(2)
 

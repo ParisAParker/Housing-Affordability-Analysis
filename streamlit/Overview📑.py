@@ -59,8 +59,8 @@ def show_results():
     st.write("""
     ### Key Findings
 
-    **1. Income to Home Price Ratio Trends:**
-    - The Income to Home Price Ratio has been decreasing over the years.
+    **1. Median Income to Median Home Price Ratio Trends:**
+    - The Median Income to Median Home Price Ratio has been decreasing over the years.
     - Ohio has the highest ratio, indicating better affordability.
     - Montana has the lowest ratio, indicating lower affordability.
 
@@ -101,7 +101,7 @@ def show_conclusion():
     st.header("Conclusion")
     st.write("""
     **Housing Affordability Decline:**
-    Housing affordability has steadily decreased over the years, evident from the declining income to home price ratio annually.
+    Housing affordability has steadily decreased over the years, evident from the declining median income to median home price ratio annually.
 
     **Regional Price Trends:**
 
