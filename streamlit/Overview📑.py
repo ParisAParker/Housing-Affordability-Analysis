@@ -145,6 +145,9 @@ def show_contact_information():
     # Title of the page
     st.title("Contact Information")
 
+    # Picture
+    st.image('images/contact_headshot.JPG', width=100)
+
     # GitHub Repository
     st.subheader("GitHub")
     st.write("[Click here to see the full repository](https://github.com/ParisAParker/Housing-Affordability-Analysis)")

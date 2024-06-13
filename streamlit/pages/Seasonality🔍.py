@@ -54,7 +54,7 @@ def best_time_buy(metric, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'{best_month} has the Lowest Housing Prices')
 
     # Remove the spines
@@ -115,7 +115,7 @@ def most_listing_options(metric, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'{best_month} has the Most Housing Options')
 
     # Remove the spines
@@ -176,8 +176,8 @@ def home_size_variability(metric, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Home size is consistent')
+    ax.set_xlabel(f'{metric} (%)')
+    ax.set_title(f'Home Sizes Remain Consistent Throughout the Year')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -237,7 +237,7 @@ def median_days_on_market(metric, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'Highest Median Days on Market: {best_month} at Peak')
 
     # Remove the spines
@@ -296,7 +296,7 @@ def state_best_time_buy(metric, state, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'{best_month} has the Lowest Housing Prices')
 
     # Remove the spines
@@ -355,7 +355,7 @@ def state_most_listing_options(metric, state, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'{best_month} has the Most Housing Options')
 
     # Remove the spines
@@ -414,8 +414,8 @@ def state_home_size_variability(metric, state, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
-    ax.set_title(f'Home sizes are consistent year round')
+    ax.set_xlabel(f'{metric} (%)')
+    ax.set_title(f'Home Sizes Remain Consistent Throughout the Year')
 
     # Remove the spines
     ax.spines['top'].set_visible(False)
@@ -474,7 +474,7 @@ def state_median_days_on_market(metric, state, min, max):
             bar.set_color('blue')
 
     # Set the title and axes
-    ax.set_xlabel(f'{metric}')
+    ax.set_xlabel(f'{metric} (%)')
     ax.set_title(f'Highest Median Days on Market: {best_month} at Peak')
 
     # Remove the spines
@@ -621,10 +621,10 @@ with tab1:
             st.pyplot(home_size_variability('Median Square Feet', -10, 10))
 
         with col2:
-            st.pyplot(most_listing_options('active_listing_count', -10, 10))
+            st.pyplot(most_listing_options('Active Listing Count', -10, 10))
 
         st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)    
-        st.pyplot(median_days_on_market('median_days_on_market', -45, 45))
+        st.pyplot(median_days_on_market('Median Days On Market', -45, 45))
     
     with n_tab2:
         # Create columns
@@ -633,12 +633,12 @@ with tab1:
         with col1:
             st.plotly_chart(n_interactive_metric_over_time("Median Listing Price"))
             st.plotly_chart(n_interactive_metric_over_time("Median Square Feet"))
-            st.plotly_chart(n_interactive_metric_over_time("Income to Home Price Ratio"))
+            st.plotly_chart(n_interactive_metric_over_time("Median Income to Median Home Price Ratio"))
 
         with col2:
             st.plotly_chart(n_interactive_metric_over_time("Median Listing Price per Square Foot"))
-            st.plotly_chart(n_interactive_metric_over_time("active_listing_count"))
-            st.plotly_chart(n_interactive_metric_over_time("median_days_on_market"))      
+            st.plotly_chart(n_interactive_metric_over_time("Active Listing Count"))
+            st.plotly_chart(n_interactive_metric_over_time("Median Days On Market"))      
 
 with tab2:
     st.header("State View")
@@ -658,13 +658,21 @@ with tab2:
             st.pyplot(state_home_size_variability("Median Square Feet", state, -20, 20))
         
         with col2:
-            st.pyplot(state_most_listing_options("active_listing_count", state, -20, 20))
+            st.pyplot(state_most_listing_options("Active Listing Count", state, -20, 20))
 
         st.write("# <span style='color: red;'>Note: The Median Days on Market plot has a different scale for the x-axis</span>", unsafe_allow_html=True)
-        st.pyplot(state_median_days_on_market("median_days_on_market", state, -45, 45))
+        st.pyplot(state_median_days_on_market("Median Days On Market", state, -45, 45))
 
 
     with s_tab2:
+        st.subheader("Performance Metrics ")
+        st.markdown("""
+- These metrics display the percentage change since July 2016 for each category
+- They also show the ranking of each state out of all 51 states (District of Columbia included)
+- The more positive the number, the higher the ranking
+- The more negative the number, the lower the ranking
+- For example a state with a 50% increase will be ranked higher than one with a 40% increase & a state with a -20% decrease will be ranked higher than one with a -30% decrease
+                    """)
         m_col1, m_col2, m_col3 = st.columns(3)
         st.write("")
         m_col4, m_col5, m_col6 = st.columns(3)
@@ -675,8 +683,10 @@ with tab2:
         def styled_metric(metric_label,rank_value,percent_value,background_color='#EEEEEE',text_align='center'):
             if percent_value >= 0:
                 direction = 'increase'
+                color_style = 'color:green'
             else:
                 direction = 'decrease'
+                color_style = 'color:red'
 
             metric_html = f""" 
             <div style="background-color: {background_color};
@@ -687,7 +697,7 @@ with tab2:
 
             <div style="margin: 10 px auto;">
                 <p style="margin: 0;">{metric_label}</p>
-                    <h3 <span style="margin: 0; font-size: 26px; color:green">{percent_value}%</span> {direction} since July 2016</h3>
+                    <h3 <span style="margin: 0; font-size: 26px; {color_style}">{percent_value}%</span> {direction}</h3>
                         <p style="margin: 0; font-size: 20px;">Rank {rank_value} out of 51</p> 
                         </div> </div>
                             """ 
@@ -734,7 +744,7 @@ with tab2:
             st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col4:
-            metric = 'Income to Home Price Ratio'
+            metric = 'Median Income to Median Home Price Ratio'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
@@ -747,7 +757,7 @@ with tab2:
             st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col5:
-            metric = 'active_listing_count'
+            metric = 'Active Listing Count'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
@@ -760,7 +770,7 @@ with tab2:
             st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col6:
-            metric = 'median_days_on_market'
+            metric = 'Median Days On Market'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
@@ -779,10 +789,10 @@ with tab2:
             
             st.plotly_chart(interactive_metric_over_time("Median Listing Price", state))
             st.plotly_chart(interactive_metric_over_time("Median Square Feet", state))
-            st.plotly_chart(interactive_metric_over_time("Income to Home Price Ratio", state))
+            st.plotly_chart(interactive_metric_over_time("Median Income to Median Home Price Ratio", state))
         
         with col2:
 
             st.plotly_chart(interactive_metric_over_time("Median Listing Price per Square Foot", state))
-            st.plotly_chart(interactive_metric_over_time("active_listing_count", state))
-            st.plotly_chart(interactive_metric_over_time("median_days_on_market", state))            
+            st.plotly_chart(interactive_metric_over_time("Active Listing Count", state))
+            st.plotly_chart(interactive_metric_over_time("Median Days On Market", state))            

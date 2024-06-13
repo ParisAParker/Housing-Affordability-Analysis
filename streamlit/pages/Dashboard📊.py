@@ -9,6 +9,10 @@ st.set_page_config(page_title="Housing Affordability Analysis",
     page_icon="🏠",
     layout = 'wide')
 
+# Style metric boxes
+with open('style.css') as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
 # Read csv, convert datetime column & create affordability index column
 national_housing_df = pd.read_csv("../data/national_housing.csv")
 national_housing_df['month_date_yyyymm'] = pd.to_datetime(national_housing_df['month_date_yyyymm'])
@@ -19,7 +23,7 @@ state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_d
 mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
 
 # Add metric option to sidebar
-metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','active_listing_count','Median Income','Income to Home Price Ratio']
+metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','Median Income','Median Income to Median Home Price Ratio']
 metric = st.sidebar.selectbox("Select Metric", metric_options)
 
 # Remove all null values for the specific metric
@@ -314,6 +318,10 @@ def percentage_increase_plot(states):
 
     return fig
 
+# Define a function to format numbers as currency
+def format_currency(value):
+    return "${:,.0f}".format(value)
+
 month = latest_month
 year = latest_year
 
@@ -326,40 +334,104 @@ with left_column:
     # Create 4 equal columns withing the left section
     col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
-        national_value = national_comparison(metric, month, year)[2]
-
-        st.metric(label = "National Value",
-                  value = national_value)
-
-    with col2:
-        percent_metric_list = percent_higher_lower(metric, month, year, 'highest')
-        metric_value = percent_metric_list[0]
-        metric_state = percent_metric_list[1]
-        metric_percent = percent_metric_list[2]
-
-        st.metric(label = f'{metric_state}',
-              value = metric_value,
-              delta=int(metric_percent))
-
-    with col3:
-        percent_metric_list = percent_higher_lower(metric, month, year, 'lowest')
-        metric_value = percent_metric_list[0]
-        metric_state = percent_metric_list[1]
-        metric_percent = percent_metric_list[2]
-
-        st.metric(label = f'{metric_state}',
-              value = metric_value,
-              delta=int(metric_percent))
+    # Format as currency if metric is currency
+    if metric == 'Median Income to Median Home Price Ratio':
     
-    with col4:
-        national_comparison_list = national_comparison(metric, month, year)
-        num_states = national_comparison_list[0]
-        percent_states = national_comparison_list[1]
+        with col1:
+            national_value = national_comparison(metric, month, year)[2]
 
-        st.metric(label = "Number of States Above National Value",
-                  value = num_states,
-                  delta = percent_states)
+            st.metric(label = "National Value",
+                    value = national_value)
+
+        with col2:
+            percent_metric_list = percent_higher_lower(metric, month, year, 'highest')
+            metric_value = percent_metric_list[0]
+            metric_state = percent_metric_list[1]
+            metric_percent = percent_metric_list[2]
+
+            st.metric(label = f'{metric_state}',
+                value = metric_value,
+                delta=int(metric_percent))
+
+        with col3:
+            percent_metric_list = percent_higher_lower(metric, month, year, 'lowest')
+            metric_value = percent_metric_list[0]
+            metric_state = percent_metric_list[1]
+            metric_percent = percent_metric_list[2]
+
+            st.metric(label = f'{metric_state}',
+                value = metric_value,
+                delta=int(metric_percent))
+        
+        with col4:
+            national_comparison_list = national_comparison(metric, month, year)
+            num_states = national_comparison_list[0]
+            percent_states = national_comparison_list[1]
+
+            st.metric(label = "Number of States Above National Value",
+                    value = num_states,
+                    delta = percent_states)
+    else:
+
+        with col1:
+            national_value = national_comparison(metric, month, year)[2]
+
+            metrics = {
+                "National Value": national_value
+            }
+
+            for key, value in metrics.items():
+                formatted_value = format_currency(value)
+                st.metric(label = key,
+                    value = formatted_value)
+
+        with col2:
+            percent_metric_list = percent_higher_lower(metric, month, year, 'highest')
+            metric_value = percent_metric_list[0]
+            metric_state = percent_metric_list[1]
+            metric_percent = percent_metric_list[2]
+
+            metrics = {
+                f"{metric_state}": metric_value
+            }
+
+            for key, value in metrics.items():
+                formatted_value = format_currency(value)
+                st.metric(label = key,
+                        value = formatted_value,
+                        delta = int(metric_percent))
+            # st.metric(label = f'{metric_state}',
+            #       value = metric_value,
+            #       delta=int(metric_percent))
+
+        with col3:
+            percent_metric_list = percent_higher_lower(metric, month, year, 'lowest')
+            metric_value = percent_metric_list[0]
+            metric_state = percent_metric_list[1]
+            metric_percent = percent_metric_list[2]
+
+            metrics = {
+                f"{metric_state}": metric_value
+            }
+
+            for key, value in metrics.items():
+                formatted_value = format_currency(value)
+                st.metric(label = key,
+                        value = formatted_value,
+                        delta = int(metric_percent))
+
+            # st.metric(label = f'{metric_state}',
+            #       value = metric_value,
+            #       delta=int(metric_percent))
+        
+        with col4:
+            national_comparison_list = national_comparison(metric, month, year)
+            num_states = national_comparison_list[0]
+            percent_states = national_comparison_list[1]
+
+            st.metric(label = "Number of States Above National Value",
+                    value = num_states,
+                    delta = percent_states)
     
 
     states = st.multiselect('Select States:', filtered_df['state'].unique(), default = ['Tennessee', 'Hawaii','Ohio'])
