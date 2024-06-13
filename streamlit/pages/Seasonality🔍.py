@@ -665,22 +665,31 @@ with tab2:
 
 
     with s_tab2:
-        m_col1, m_col2, m_col3, m_col4, m_col5, m_col6 = st.columns(6)
+        m_col1, m_col2, m_col3 = st.columns(3)
+        st.write("")
+        m_col4, m_col5, m_col6 = st.columns(3)
         
         with open('style.css') as f:
             st.markdown(f'<style>{f.read()}<style>', unsafe_allow_html=True)
 
         def styled_metric(metric_label,rank_value,percent_value,background_color='#EEEEEE',text_align='center'):
+            if percent_value >= 0:
+                direction = 'increase'
+            else:
+                direction = 'decrease'
+
             metric_html = f""" 
             <div style="background-color: {background_color};
-              padding: 16px;
-                border-radius: 10px;
+              padding: 0px;
+                border-radius: 5px;
                   text-align: {text_align};
                   ">
+
             <div style="margin: 10 px auto;">
                 <p style="margin: 0;">{metric_label}</p>
-                    <h4 style="margin: 0; font-size: 20px;">Rank {rank_value} out of 51</h4>
-                        <p style="margin: 0; font-size: 20px;">{percent_value}</p> </div> </div>
+                    <h3 <span style="margin: 0; font-size: 26px; color:green">{percent_value}%</span> {direction} since July 2016</h3>
+                        <p style="margin: 0; font-size: 20px;">Rank {rank_value} out of 51</p> 
+                        </div> </div>
                             """ 
             return metric_html 
         
@@ -689,68 +698,79 @@ with tab2:
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            # metric_html = styled_metric(
-            #     metric_label=f"{metric}",
-            #     rank_value=rank,
-            #     percent_value = percent_increase
-            # )
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
 
-            # st.markdown(metric_html, unsafe_allow_html=True)
+            st.markdown(metric_html, unsafe_allow_html=True)
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color='normal')
 
         with m_col2:
             metric = 'Median Square Feet'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color= 'normal') 
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
+
+            st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col3:
             metric = 'Median Listing Price per Square Foot'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color= 'normal') 
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
+
+            st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col4:
             metric = 'Income to Home Price Ratio'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color= 'normal') 
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
+
+            st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col5:
             metric = 'active_listing_count'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color= 'normal') 
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
+
+            st.markdown(metric_html, unsafe_allow_html=True)
             
         with m_col6:
             metric = 'median_days_on_market'
             percent_increase = pct_change_metric(f"{metric}",state)[0]
             rank = pct_change_metric(f"{metric}",state)[1]
 
-            st.metric(label = f'{metric} % increase',
-                      value = rank,
-                      delta = percent_increase,
-                      delta_color= 'normal') 
+            metric_html = styled_metric(
+                metric_label=f"{metric}",
+                rank_value=rank,
+                percent_value = percent_increase
+            )
+
+            st.markdown(metric_html, unsafe_allow_html=True)
         
         # Create columns
         col1, col2 = st.columns(2)

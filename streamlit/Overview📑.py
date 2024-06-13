@@ -21,7 +21,8 @@ section = st.sidebar.selectbox("Go to section:",
                                 "📈 Results",
                                 "🛑 Limitations", 
                                 "📄 Conclusion",
-                                "🛠 Future Directions"])
+                                "🛠 Future Directions",
+                                "📬 Contact Information"])
 
 # Define the content for each section
 def show_executive_summary():
@@ -33,6 +34,8 @@ def show_executive_summary():
     The primary motivation for this research is to assist prospective homebuyers, like myself, 
     in understanding the evolving landscape of housing affordability.
     """)
+    st.image('images/housing_image.jpg', use_column_width=True)
+
 
 def show_motivation_and_data_questions():
     st.header("Motivation & Data Questions")
@@ -137,6 +140,27 @@ def show_future_directions():
     **4. Developing a Home Affordability Calculator:**
     Building a calculator tool where users can input their income, debt, interest rate, down payment, and type of mortgage to estimate the affordability of a home. This calculator can also provide insights into how many states an individual would be able to purchase a median priced home
              """)
+    
+def show_contact_information():
+    # Title of the page
+    st.title("Contact Information")
+
+    # GitHub Repository
+    st.subheader("GitHub")
+    st.write("[Click here to see the full repository](https://github.com/ParisAParker/Housing-Affordability-Analysis)")
+
+    # My Email
+    st.subheader("Email")
+    st.write("parisaparker2001@gmail.com")
+
+    # LinkedIn
+    st.subheader("LinkedIn")
+    st.write("[Paris Parker's LinkedIn](https://www.linkedin.com/in/parisaparker/)")
+
+    # Description
+    st.write("""
+    Feel free to reach out to me via email or connect with me on LinkedIn for any feedback or suggestions.
+    """)
 
 # Display the selected section content
 if section == "🏠 Executive Summary":
@@ -153,3 +177,5 @@ elif section == "📄 Conclusion":
     show_conclusion()
 elif section == "🛠 Future Directions":
     show_future_directions()
+elif section == "📬 Contact Information":
+    show_contact_information()
