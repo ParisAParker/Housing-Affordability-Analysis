@@ -39,7 +39,7 @@ def show_executive_summary():
     in understanding the evolving landscape of housing affordability.
     """)
 
-    st.write(f"Current directory: {curren_dir}")
+    st.write(f"Current directory: {current_dir}")
     st.image('images/housing_image.jpg', use_column_width=True)
 
 
