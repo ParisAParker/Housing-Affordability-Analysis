@@ -12,6 +12,9 @@ st.set_page_config(
 # Getting absolute path of the current directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Absolute path of image
+image_path = os.path.join(current_dir, "images", 'housing_image.jpg')
+
 # Title of the dashboard
 st.title("Housing Affordability Analysis")
 
@@ -40,6 +43,8 @@ def show_executive_summary():
     """)
 
     st.write(f"Current directory: {current_dir}")
+    st.write(f"Image path: {image_path}")
+    
     st.image('images/housing_image.jpg', use_column_width=True)
 
 
