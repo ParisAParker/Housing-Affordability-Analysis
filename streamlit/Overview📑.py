@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 
 # Set the page configuration
@@ -7,6 +8,9 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded",
 )
+
+# Getting absolute path of the current directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Title of the dashboard
 st.title("Housing Affordability Analysis")
@@ -34,7 +38,9 @@ def show_executive_summary():
     The primary motivation for this research is to assist prospective homebuyers, like myself, 
     in understanding the evolving landscape of housing affordability.
     """)
-    #st.image('images/housing_image.jpg', use_column_width=True)
+
+    st.write(f"Current directory: {curren_dir}")
+    st.image('images/housing_image.jpg', use_column_width=True)
 
 
 def show_motivation_and_data_questions():
