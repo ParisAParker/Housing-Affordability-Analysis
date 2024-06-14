@@ -34,7 +34,7 @@ def show_executive_summary():
     The primary motivation for this research is to assist prospective homebuyers, like myself, 
     in understanding the evolving landscape of housing affordability.
     """)
-    st.image('../images/housing_image.jpg', use_column_width=True)
+    #st.image('images/housing_image.jpg', use_column_width=True)
 
 
 def show_motivation_and_data_questions():
