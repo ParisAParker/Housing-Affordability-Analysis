@@ -45,7 +45,7 @@ def show_executive_summary():
     st.write(f"Current directory: {current_dir}")
     st.write(f"Image path: {image_path}")
     
-    st.image('images/housing_image.jpg', use_column_width=True)
+    st.image(image_path, use_column_width=True)
 
 
 def show_motivation_and_data_questions():
