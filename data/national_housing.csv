@@ -1,4 +1,4 @@
-month_date_yyyymm,country,Median Listing Price,active_listing_count,median_days_on_market,new_listing_count,price_increased_count,price_reduced_count,pending_listing_count,Median Listing Price per Square Foot,Median Square Feet,average_listing_price,total_listing_count,pending_ratio,quality_flag,year,month,Median Income,Income to Home Price Ratio
+month_date_yyyymm,country,Median Listing Price,Active Listing Count,Median Days On Market,new_listing_count,price_increased_count,price_reduced_count,pending_listing_count,Median Listing Price per Square Foot,Median Square Feet,average_listing_price,total_listing_count,pending_ratio,quality_flag,year,month,Median Income,Median Income to Median Home Price Ratio
 2024-04-01,United States,429950.0,734318.0,47.0,432028.0,23232.0,250924.0,457359.0,230.0,1840.0,769863.0,1187383.0,0.6228,0.0,2024,April,,
 2024-03-01,United States,424900.0,694820.0,50.0,395536.0,21144.0,220240.0,421007.0,228.0,1825.0,764301.0,1112582.0,0.6059,0.0,2024,March,,
 2024-02-01,United States,415500.0,664716.0,61.0,339370.0,20800.0,201428.0,367162.0,224.0,1818.0,753320.0,1029056.0,0.5524,0.0,2024,February,,
