@@ -9,12 +9,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Getting absolute path of the current directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Absolute path of image
-image_path = os.path.join(current_dir, "images", 'housing_image.jpg')
-
 # Title of the dashboard
 st.title("Housing Affordability Analysis")
 
@@ -41,11 +35,8 @@ def show_executive_summary():
     The primary motivation for this research is to assist prospective homebuyers, like myself, 
     in understanding the evolving landscape of housing affordability.
     """)
-
-    st.write(f"Current directory: {current_dir}")
-    st.write(f"Image path: {image_path}")
     
-    st.image(image_path, use_column_width=True)
+    st.image("/mount/src/housing-affordability-analysis/streamlit/images/housing_image.jpg", use_column_width=True)
 
 
 def show_motivation_and_data_questions():
@@ -157,7 +148,7 @@ def show_contact_information():
     st.title("Contact Information")
 
     # Picture
-    st.image('images/contact_headshot.JPG', width=100)
+    st.image('/mount/src/housing-affordability-analysis/streamlit/images/contact_headshot.JPG', width=100)
 
     # GitHub Repository
     st.subheader("GitHub")
