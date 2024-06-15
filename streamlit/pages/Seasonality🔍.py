@@ -11,10 +11,10 @@ st.set_page_config(page_title="Housing Affordability Analysis",
     layout = 'wide')
 
 # Read csv, convert datetime column & create affordability index column
-national_df = pd.read_csv("../data/national_housing.csv")
+national_df = pd.read_csv("/mount/src/housing-affordability-analysis/data/national_housing.csv")
 national_df['month_date_yyyymm'] = pd.to_datetime(national_df['month_date_yyyymm'])
 
-state_df = pd.read_csv("../data/state_housing.csv")
+state_df = pd.read_csv("/mount/src/housing-affordability-analysis/data/state_housing.csv")
 state_df['month_date_yyyymm'] = pd.to_datetime(state_df['month_date_yyyymm'])
 
 
