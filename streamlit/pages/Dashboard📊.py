@@ -10,17 +10,17 @@ st.set_page_config(page_title="Housing Affordability Analysis",
     layout = 'wide')
 
 # Style metric boxes
-with open('style.css') as f:
+with open('/mount/src/housing-affordability-analysis/streamlit/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Read csv, convert datetime column & create affordability index column
-national_housing_df = pd.read_csv("../data/national_housing.csv")
+national_housing_df = pd.read_csv("/mount/src/housing-affordability-analysis/data/national_housing.csv")
 national_housing_df['month_date_yyyymm'] = pd.to_datetime(national_housing_df['month_date_yyyymm'])
 
-state_housing_df = pd.read_csv("../data/state_housing.csv")
+state_housing_df = pd.read_csv("/mount/src/housing-affordability-analysis/data/state_housing.csv")
 state_housing_df['month_date_yyyymm'] = pd.to_datetime(state_housing_df['month_date_yyyymm'])
 
-mlp_increase = pd.read_csv('../data/mlp_percent_increase.csv')
+mlp_increase = pd.read_csv('/mount/src/housing-affordability-analysis/data/mlp_percent_increase.csv')
 
 # Add metric option to sidebar
 metric_options = ['Median Listing Price','Median Square Feet','Median Listing Price per Square Foot','Median Income','Median Income to Median Home Price Ratio']
