@@ -677,7 +677,7 @@ with tab2:
         st.write("")
         m_col4, m_col5, m_col6 = st.columns(3)
         
-        with open('style.css') as f:
+        with open('/mount/src/housing-affordability-analysis/streamlit/style.css') as f:
             st.markdown(f'<style>{f.read()}<style>', unsafe_allow_html=True)
 
         def styled_metric(metric_label,rank_value,percent_value,background_color='#EEEEEE',text_align='center'):
